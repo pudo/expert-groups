@@ -144,31 +144,25 @@ def store_group(group):
 
 def download():
     log.info("Downloading Regexp")
-    if not os.path.isfile(DATA_CACHE):
-        res = requests.get(DATA_URL)
-        if res.status_code != 200:
-            return
-        with open(DATA_CACHE, 'wb') as fh:
-            fh.write(res.content)
-    with open(DATA_CACHE, 'rb') as fh:
-        doc = etree.parse(fh)
-        for group in doc.findall('//' + NS + 'group'):
-            xml = etree.tostring(group)
-            group = parse_group(group)
-            prov = data_table.find_one(xml=xml)
-            if prov is not None:
-                prov['last_seen'] = datetime.utcnow()
-            else:
-                prov = {
-                    'group': group.get('id'),
-                    'name': group.get('name'),
-                    'first_seen': datetime.utcnow(),
-                    'last_seen': datetime.utcnow(),
-                    'xml': xml,
-                }
-            data_table.upsert(prov, ['xml'])
-            log.info("Importing %s" % group.get('name'))
-            store_group(group)
+    res = requests.get(DATA_URL)
+    doc = etree.fromstring(res.content)
+    for group in doc.findall('.//' + NS + 'group'):
+        xml = etree.tostring(group)
+        group = parse_group(group)
+        prov = data_table.find_one(xml=xml)
+        if prov is not None:
+            prov['last_seen'] = datetime.utcnow()
+        else:
+            prov = {
+                'group': group.get('id'),
+                'name': group.get('name'),
+                'first_seen': datetime.utcnow(),
+                'last_seen': datetime.utcnow(),
+                'xml': xml,
+            }
+        data_table.upsert(prov, ['xml'])
+        log.info("Importing %s" % group.get('name'))
+        store_group(group)
 
 
 if __name__ == '__main__':
