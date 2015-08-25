@@ -160,9 +160,9 @@ def download():
                 'last_seen': datetime.utcnow(),
                 'xml': xml,
             }
+            log.info("Importing %s" % group.get('name'))
+            store_group(group)
         data_table.upsert(prov, ['xml'])
-        log.info("Importing %s" % group.get('name'))
-        store_group(group)
 
 
 if __name__ == '__main__':
