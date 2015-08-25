@@ -1,10 +1,11 @@
-import os
-import dataset
+import json
 import logging
+# from pprint import pprint
+from datetime import datetime, date
+
+import dataset
 import requests
 from lxml import etree
-from pprint import pprint
-from datetime import datetime
 
 log = logging.getLogger('experts')
 NS = '{http://ec.europa.eu/transparency/regexpert/}'
@@ -23,9 +24,15 @@ exp_group_member = engine['exp_group_member']
 
 
 def complex_date(el):
-    return datetime(year=int(el.findtext(NS+'year')),
-                    month=int(el.findtext(NS+'month')),
-                    day=int(el.findtext(NS+'day')))
+    return date(year=int(el.findtext(NS+'year')),
+                month=int(el.findtext(NS+'month')),
+                day=int(el.findtext(NS+'day')))
+
+
+def json_default(obj):
+    if isinstance(obj, (date, datetime)):
+        return obj.isoformat()
+    return obj
 
 
 def text_list(els):
@@ -158,7 +165,8 @@ def download():
                 'name': group.get('name'),
                 'first_seen': datetime.utcnow(),
                 'last_seen': datetime.utcnow(),
-                'xml': xml,
+                'xml': xml
+                # 'json': json.dumps(group, default=json_default)
             }
             log.info("Importing %s" % group.get('name'))
             store_group(group)
