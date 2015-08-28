@@ -1,4 +1,4 @@
-import json
+# import json
 import logging
 # from pprint import pprint
 from datetime import datetime, date
@@ -9,8 +9,7 @@ from lxml import etree
 
 log = logging.getLogger('experts')
 NS = '{http://ec.europa.eu/transparency/regexpert/}'
-DATA_URL = 'http://ec.europa.eu/transparency/regexpert/openXMLDirect.cfm'
-DATA_CACHE = 'data.xml'
+URL = 'http://ec.europa.eu/transparency/regexpert/openXMLDirect.cfm'
 engine = dataset.connect('sqlite:///data.sqlite')
 data_table = engine['data']
 exp_group = engine['exp_group']
@@ -151,11 +150,13 @@ def store_group(group):
 
 def download():
     log.info("Downloading Regexp")
-    res = requests.get(DATA_URL)
-    doc = etree.fromstring(res.content)
-    for group in doc.findall('.//' + NS + 'group'):
-        xml = etree.tostring(group)
-        group = parse_group(group)
+    res = requests.get(URL, stream=True)
+    res.raw.decode_content = True
+    for evt, el in etree.iterparse(res.raw):
+        if evt != 'end' or el.tag != NS + 'group':
+            continue
+        xml = etree.tostring(el)
+        group = parse_group(el)
         prov = data_table.find_one(xml=xml)
         if prov is not None:
             prov['last_seen'] = datetime.utcnow()
