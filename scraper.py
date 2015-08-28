@@ -172,6 +172,7 @@ def download():
             log.info("Importing %s" % group.get('name'))
             store_group(group)
         data_table.upsert(prov, ['xml'])
+        el.clear()
 
 
 if __name__ == '__main__':
