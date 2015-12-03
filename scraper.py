@@ -15,7 +15,7 @@ URL = 'http://ec.europa.eu/transparency/regexpert/openXMLDirect.cfm'
 
 db = os.environ.get('DATABASE_URI', 'sqlite:///data.sqlite')
 engine = dataset.connect(db)
-data_table = engine['data']
+data_table = engine['eu_expert_data']
 exp_group = engine['eu_expert_group']
 exp_sub_group = engine['eu_expert_sub_group']
 exp_group_type = engine['eu_expert_group_type']
@@ -44,8 +44,8 @@ def text_list(els):
 
 def info_link_obj(el):
     return {
-        'info': el.findtext(NS+'info'),
-        'link': el.findtext(NS+'link')
+        'info': el.findtext(NS + 'info'),
+        'link': el.findtext(NS + 'link')
     }
 
 
@@ -161,7 +161,7 @@ def download():
             continue
         xml = etree.tostring(el)
         group = parse_group(el)
-        prov = data_table.find_one(xml=xml)
+        prov = data_table.find_one(group=group.get('id'))
         if prov is not None:
             prov['last_seen'] = datetime.utcnow()
         else:
@@ -175,7 +175,7 @@ def download():
             }
             log.info("Importing %s" % group.get('name'))
             store_group(group)
-        data_table.upsert(prov, ['xml'])
+        data_table.upsert(prov, ['group'])
         el.clear()
 
 
