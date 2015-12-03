@@ -1,3 +1,4 @@
+import os
 # import json
 import logging
 # from pprint import pprint
@@ -10,22 +11,25 @@ from lxml import etree
 log = logging.getLogger('experts')
 NS = '{http://ec.europa.eu/transparency/regexpert/}'
 URL = 'http://ec.europa.eu/transparency/regexpert/openXMLDirect.cfm'
-engine = dataset.connect('sqlite:///data.sqlite')
+
+
+db = os.environ.get('DATABASE_URI', 'sqlite:///data.sqlite')
+engine = dataset.connect(db)
 data_table = engine['data']
-exp_group = engine['exp_group']
-exp_sub_group = engine['exp_sub_group']
-exp_group_type = engine['exp_group_type']
-exp_group_task = engine['exp_group_task']
-exp_group_associated_dg = engine['exp_group_associated_dg']
-exp_group_policy_area = engine['exp_group_policy_area']
-exp_group_note = engine['exp_group_note']
-exp_group_member = engine['exp_group_member']
+exp_group = engine['eu_expert_group']
+exp_sub_group = engine['eu_expert_sub_group']
+exp_group_type = engine['eu_expert_group_type']
+exp_group_task = engine['eu_expert_group_task']
+exp_group_associated_dg = engine['eu_expert_group_associated_dg']
+exp_group_policy_area = engine['eu_expert_group_policy_area']
+exp_group_note = engine['eu_expert_group_note']
+exp_group_member = engine['eu_expert_group_member']
 
 
 def complex_date(el):
-    return date(year=int(el.findtext(NS+'year')),
-                month=int(el.findtext(NS+'month')),
-                day=int(el.findtext(NS+'day')))
+    return date(year=int(el.findtext(NS + 'year')),
+                month=int(el.findtext(NS + 'month')),
+                day=int(el.findtext(NS + 'day')))
 
 
 def json_default(obj):
@@ -42,7 +46,7 @@ def info_link_obj(el):
     return {
         'info': el.findtext(NS+'info'),
         'link': el.findtext(NS+'link')
-        }
+    }
 
 
 def parse_members(members):
@@ -59,7 +63,7 @@ def parse_members(members):
                 'public_authorities': member.findtext(NS+'public_authorities//'+NS+'name'),
                 'categories': text_list(member.findall(NS+'categories/'+NS+'category')),
                 'areas_represented': text_list(member.findall(NS+'areas_countries_represented/'+NS+'area_country_represented'))
-                })
+            })
             data.append(m)
     return data
 
