@@ -1,4 +1,5 @@
 import os
+import sys
 # import json
 import logging
 # from pprint import pprint
@@ -152,11 +153,12 @@ def store_group(group):
     exp_group.upsert(group, ['group_id'])
 
 
-def download():
+def download(file_name):
     log.info("Downloading Regexp")
-    res = requests.get(URL, stream=True)
-    res.raw.decode_content = True
-    for evt, el in etree.iterparse(res.raw):
+    # res = requests.get(URL, stream=True)
+    # res.raw.decode_content = True
+    fh = open(file_name, 'rb')
+    for evt, el in etree.iterparse(fh):
         if evt != 'end' or el.tag != NS + 'group':
             continue
         xml = etree.tostring(el)
@@ -181,4 +183,4 @@ def download():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    download()
+    download(sys.argv[1])
